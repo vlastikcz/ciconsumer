@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class RemoteNotificationService {
-    private static final int NOTIFICATION_DELAY_IN_MILLISECONDS = 5000;
+    private static final int NOTIFICATION_DELAY_IN_MILLISECONDS = 15000;
 
     private final ReleaseDetailStateService releaseDetailStateService;
     private final List<RemoteNotificationTarget> remoteNotificationTargets;
