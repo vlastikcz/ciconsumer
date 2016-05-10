@@ -5,10 +5,10 @@
 
 	<groupId>com.github.vlastikcz</groupId>
 	<artifactId>ciconsumer</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
-	<name>demo</name>
+	<name>ciconsumer</name>
 	<description>CI Consumer</description>
 
 	<parent>
