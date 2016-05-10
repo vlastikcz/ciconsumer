@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetailNotificationTask;
@@ -18,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class RemoteNotificationService {
-    private static final int NOTIFICATION_JOB_DELAY_IN_MILLISECONDS = 15000;
 
     private final ReleaseDetailNotificationTaskService releaseDetailNotificationTaskService;
     private final RemoteNotificationResultService remoteNotificationResultService;
@@ -31,13 +29,6 @@ public class RemoteNotificationService {
         this.releaseDetailNotificationTaskService = releaseDetailNotificationTaskService;
         this.remoteNotificationResultService = remoteNotificationResultService;
         this.remoteNotificationTargets = remoteNotificationTargets;
-    }
-
-    @Scheduled(fixedDelay = NOTIFICATION_JOB_DELAY_IN_MILLISECONDS)
-    public void sendRemoteNotificationsScheduled() {
-        log.debug("action.call=sendRemoteNotificationsScheduled");
-        sendRemoteNotifications();
-        log.debug("action.done=sendRemoteNotificationsScheduled");
     }
 
     @EventListener
@@ -65,7 +56,8 @@ public class RemoteNotificationService {
         remoteNotificationResultService.handleRemoteNotificationResult(releaseDetailNotificationTask, result);
     }
 
-    private RemoteNotificationStatus sendRemoteNotification(ReleaseDetailNotificationTask releaseDetailNotificationTask, RemoteNotificationTarget remoteNotificationTarget) {
+    private RemoteNotificationStatus sendRemoteNotification(ReleaseDetailNotificationTask releaseDetailNotificationTask, RemoteNotificationTarget
+            remoteNotificationTarget) {
         if (targetAlreadyNotified(releaseDetailNotificationTask.getRemoteNotificationStatuses(), remoteNotificationTarget)) {
             return new RemoteNotificationStatus(remoteNotificationTarget, true);
         }
