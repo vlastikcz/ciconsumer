@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class RemoteNotificationService {
-    private static final int NOTIFICATION_DELAY_IN_MILLISECONDS = 15000;
+    private static final int NOTIFICATION_JOB_DELAY_IN_MILLISECONDS = 15000;
 
     private final ReleaseDetailStateService releaseDetailStateService;
     private final List<RemoteNotificationTarget> remoteNotificationTargets;
@@ -30,7 +30,7 @@ public class RemoteNotificationService {
         this.remoteNotificationTargets = remoteNotificationTargets;
     }
 
-    @Scheduled(fixedDelay = NOTIFICATION_DELAY_IN_MILLISECONDS)
+    @Scheduled(fixedDelay = NOTIFICATION_JOB_DELAY_IN_MILLISECONDS)
     public void sendRemoteNotificationsScheduled() {
         log.debug("action.call=sendRemoteNotificationsScheduled");
         sendRemoteNotifications();
@@ -46,14 +46,17 @@ public class RemoteNotificationService {
 
     @Async
     public void sendRemoteNotifications() {
-        while(releaseDetailStateService.hasNext()) {
+        while (releaseDetailStateService.hasNext()) {
             final ReleaseDetailState releaseDetailState = releaseDetailStateService.poll();
-            sendRemoteNotification(releaseDetailState);
+            if (releaseDetailState != null) {
+                sendRemoteNotification(releaseDetailState);
+            }
         }
     }
 
     private void sendRemoteNotification(ReleaseDetailState releaseDetailState) {
         final List<RemoteNotificationState> result = remoteNotificationTargets.stream()
+                .filter(t -> t != null)
                 .map(t -> sendRemoteNotification(releaseDetailState, t))
                 .collect(Collectors.toList());
         updateReleaseDetailStateQueue(releaseDetailState, result);
@@ -64,6 +67,8 @@ public class RemoteNotificationService {
         if (anyNotificationHasFailed(result)) {
             releaseDetailStateService.reQueue(new ReleaseDetailState(releaseDetailState.getReleaseDetail(), result));
             log.debug("action.result=updateReleaseDetailStateQueue, result=[re-queued]");
+        } else {
+            log.debug("action.result=updateReleaseDetailStateQueue, result=[done]");
         }
     }
 
