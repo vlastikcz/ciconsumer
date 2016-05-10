@@ -9,8 +9,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetailState;
-import com.github.vlastikcz.ciconsumer.domain.entity.RemoteNotificationState;
+import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetailNotificationTask;
+import com.github.vlastikcz.ciconsumer.domain.entity.RemoteNotificationStatus;
 import com.github.vlastikcz.ciconsumer.service.target.RemoteNotificationTarget;
 
 import lombok.extern.slf4j.Slf4j;
@@ -20,13 +20,13 @@ import lombok.extern.slf4j.Slf4j;
 public class RemoteNotificationService {
     private static final int NOTIFICATION_JOB_DELAY_IN_MILLISECONDS = 15000;
 
-    private final ReleaseDetailStateService releaseDetailStateService;
+    private final ReleaseDetailNotificationTaskService releaseDetailNotificationTaskService;
     private final List<RemoteNotificationTarget> remoteNotificationTargets;
 
     @Autowired
-    public RemoteNotificationService(ReleaseDetailStateService releaseDetailStateService,
+    public RemoteNotificationService(ReleaseDetailNotificationTaskService releaseDetailNotificationTaskService,
                                      List<RemoteNotificationTarget> remoteNotificationTargets) {
-        this.releaseDetailStateService = releaseDetailStateService;
+        this.releaseDetailNotificationTaskService = releaseDetailNotificationTaskService;
         this.remoteNotificationTargets = remoteNotificationTargets;
     }
 
@@ -39,54 +39,54 @@ public class RemoteNotificationService {
 
     @EventListener
     @Async
-    public void sendRemoteNotificationsFromEvent(ReleaseDetailStateCreateEvent event) {
+    public void sendRemoteNotificationsFromEvent(ReleaseDetailNotificationTaskCreateEvent event) {
         log.debug("action.call=sendRemoteNotificationsFromEvent, arguments=[{}]", event);
         sendRemoteNotifications();
         log.debug("action.done=sendRemoteNotificationsFromEvent");
     }
 
     void sendRemoteNotifications() {
-        while (releaseDetailStateService.hasNext()) {
-            final ReleaseDetailState releaseDetailState = releaseDetailStateService.poll();
-            if (releaseDetailState != null) {
-                sendRemoteNotification(releaseDetailState);
+        while (releaseDetailNotificationTaskService.hasNext()) {
+            final ReleaseDetailNotificationTask releaseDetailNotificationTask = releaseDetailNotificationTaskService.poll();
+            if (releaseDetailNotificationTask != null) {
+                sendRemoteNotification(releaseDetailNotificationTask);
             }
         }
     }
 
-    private void sendRemoteNotification(ReleaseDetailState releaseDetailState) {
-        final List<RemoteNotificationState> result = remoteNotificationTargets.stream()
+    private void sendRemoteNotification(ReleaseDetailNotificationTask releaseDetailNotificationTask) {
+        final List<RemoteNotificationStatus> result = remoteNotificationTargets.stream()
                 .filter(t -> t != null)
-                .map(t -> sendRemoteNotification(releaseDetailState, t))
+                .map(t -> sendRemoteNotification(releaseDetailNotificationTask, t))
                 .collect(Collectors.toList());
-        updateReleaseDetailStateQueue(releaseDetailState, result);
+        updateReleaseDetailStateQueue(releaseDetailNotificationTask, result);
     }
 
-    private void updateReleaseDetailStateQueue(ReleaseDetailState releaseDetailState, List<RemoteNotificationState> result) {
-        log.debug("action.call=updateReleaseDetailStateQueue, arguments=[{}, {}]", releaseDetailState, result);
+    private void updateReleaseDetailStateQueue(ReleaseDetailNotificationTask releaseDetailNotificationTask, List<RemoteNotificationStatus> result) {
+        log.debug("action.call=updateReleaseDetailStateQueue, arguments=[{}, {}]", releaseDetailNotificationTask, result);
         if (anyNotificationHasFailed(result)) {
-            releaseDetailStateService.reQueue(new ReleaseDetailState(releaseDetailState.getReleaseDetail(), result));
+            releaseDetailNotificationTaskService.reQueue(new ReleaseDetailNotificationTask(releaseDetailNotificationTask.getReleaseDetail(), result));
             log.debug("action.result=updateReleaseDetailStateQueue, result=[re-queued]");
         } else {
             log.debug("action.result=updateReleaseDetailStateQueue, result=[done]");
         }
     }
 
-    private RemoteNotificationState sendRemoteNotification(ReleaseDetailState releaseDetailState, RemoteNotificationTarget remoteNotificationTarget) {
-        if (targetAlreadyNotified(releaseDetailState.getRemoteNotificationStates(), remoteNotificationTarget)) {
-            return new RemoteNotificationState(remoteNotificationTarget, true);
+    private RemoteNotificationStatus sendRemoteNotification(ReleaseDetailNotificationTask releaseDetailNotificationTask, RemoteNotificationTarget remoteNotificationTarget) {
+        if (targetAlreadyNotified(releaseDetailNotificationTask.getRemoteNotificationStatuses(), remoteNotificationTarget)) {
+            return new RemoteNotificationStatus(remoteNotificationTarget, true);
         }
 
-        final boolean result = remoteNotificationTarget.notify(releaseDetailState.getReleaseDetail());
-        return new RemoteNotificationState(remoteNotificationTarget, result);
+        final boolean result = remoteNotificationTarget.notify(releaseDetailNotificationTask.getReleaseDetail());
+        return new RemoteNotificationStatus(remoteNotificationTarget, result);
     }
 
-    private static boolean targetAlreadyNotified(List<RemoteNotificationState> remoteNotificationStates,
+    private static boolean targetAlreadyNotified(List<RemoteNotificationStatus> remoteNotificationStatuses,
                                                  RemoteNotificationTarget remoteNotificationTarget) {
-        return remoteNotificationStates.stream().anyMatch(s -> s.getRemoteNotificationTarget().equals(remoteNotificationTarget) && s.isFinished());
+        return remoteNotificationStatuses.stream().anyMatch(s -> s.getRemoteNotificationTarget().equals(remoteNotificationTarget) && s.isFinished());
     }
 
-    private static boolean anyNotificationHasFailed(List<RemoteNotificationState> remoteNotificationStates) {
-        return remoteNotificationStates.stream().anyMatch(s -> !s.isFinished());
+    private static boolean anyNotificationHasFailed(List<RemoteNotificationStatus> remoteNotificationStatuses) {
+        return remoteNotificationStatuses.stream().anyMatch(s -> !s.isFinished());
     }
 }

@@ -8,13 +8,13 @@ import lombok.ToString;
 
 @EqualsAndHashCode
 @ToString
-public class RemoteNotificationState {
+public class RemoteNotificationStatus {
     @Getter
     private final RemoteNotificationTarget remoteNotificationTarget;
     @Getter
     private final boolean finished;
 
-    public RemoteNotificationState(RemoteNotificationTarget remoteNotificationTarget, boolean finished) {
+    public RemoteNotificationStatus(RemoteNotificationTarget remoteNotificationTarget, boolean finished) {
         this.remoteNotificationTarget = remoteNotificationTarget;
         this.finished = finished;
     }

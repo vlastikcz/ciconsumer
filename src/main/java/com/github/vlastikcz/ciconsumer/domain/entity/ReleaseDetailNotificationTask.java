@@ -9,14 +9,14 @@ import lombok.ToString;
 
 @EqualsAndHashCode
 @ToString
-public class ReleaseDetailState {
+public class ReleaseDetailNotificationTask {
     @Getter
     private final ReleaseDetail releaseDetail;
     @Getter
-    private final List<RemoteNotificationState> remoteNotificationStates;
+    private final List<RemoteNotificationStatus> remoteNotificationStatuses;
 
-    public ReleaseDetailState(ReleaseDetail releaseDetail, List<RemoteNotificationState> remoteNotificationStates) {
+    public ReleaseDetailNotificationTask(ReleaseDetail releaseDetail, List<RemoteNotificationStatus> remoteNotificationStatuses) {
         this.releaseDetail = releaseDetail;
-        this.remoteNotificationStates = new ArrayList<>(remoteNotificationStates);
+        this.remoteNotificationStatuses = new ArrayList<>(remoteNotificationStatuses);
     }
 }

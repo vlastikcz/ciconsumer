@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetail;
-import com.github.vlastikcz.ciconsumer.service.ReleaseDetailStateService;
+import com.github.vlastikcz.ciconsumer.service.ReleaseDetailNotificationTaskService;
 import com.github.vlastikcz.ciconsumer.web.controller.request.ReleaseRequest;
 import com.github.vlastikcz.ciconsumer.web.controller.request.ReleaseRequestConverter;
 import com.github.vlastikcz.ciconsumer.web.controller.request.ReleaseRequestValidator;
@@ -28,15 +28,15 @@ public class ReleaseController {
 
     private final ReleaseRequestValidator releaseRequestValidator;
     private final ReleaseRequestConverter releaseRequestConverter;
-    private final ReleaseDetailStateService releaseDetailStateService;
+    private final ReleaseDetailNotificationTaskService releaseDetailNotificationTaskService;
 
     @Autowired
     public ReleaseController(ReleaseRequestValidator releaseRequestValidator,
                              ReleaseRequestConverter releaseRequestConverter,
-                             ReleaseDetailStateService releaseDetailStateService) {
+                             ReleaseDetailNotificationTaskService releaseDetailNotificationTaskService) {
         this.releaseRequestValidator = releaseRequestValidator;
         this.releaseRequestConverter = releaseRequestConverter;
-        this.releaseDetailStateService = releaseDetailStateService;
+        this.releaseDetailNotificationTaskService = releaseDetailNotificationTaskService;
     }
 
     @InitBinder("releaseRequest")
@@ -51,7 +51,7 @@ public class ReleaseController {
         }
 
         final ReleaseDetail releaseDetail = releaseRequestConverter.convert(releaseRequest);
-        releaseDetailStateService.create(releaseDetail);
+        releaseDetailNotificationTaskService.create(releaseDetail);
 
         return new ResponseEntity<>(releaseDetail, HttpStatus.CREATED);
     }

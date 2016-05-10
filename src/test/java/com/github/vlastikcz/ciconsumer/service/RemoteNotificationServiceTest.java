@@ -12,8 +12,8 @@ import org.junit.experimental.categories.Category;
 
 import com.github.vlastikcz.ciconsumer.UnitTest;
 import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetail;
-import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetailState;
-import com.github.vlastikcz.ciconsumer.domain.entity.RemoteNotificationState;
+import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetailNotificationTask;
+import com.github.vlastikcz.ciconsumer.domain.entity.RemoteNotificationStatus;
 import com.github.vlastikcz.ciconsumer.service.target.RemoteNotificationTarget;
 
 import static org.easymock.EasyMock.createMock;
@@ -23,26 +23,26 @@ import static org.easymock.EasyMock.expectLastCall;
 @Category(UnitTest.class)
 public class RemoteNotificationServiceTest {
     private RemoteNotificationService remoteNotificationService;
-    private ReleaseDetailStateService releaseDetailStateService;
+    private ReleaseDetailNotificationTaskService releaseDetailNotificationTaskService;
     private RemoteNotificationTarget secondaryNotificationTarget;
     private RemoteNotificationTarget primaryNotificationTarget;
 
     @Before
     public void setup() {
-        releaseDetailStateService = createMock(ReleaseDetailStateService.class);
+        releaseDetailNotificationTaskService = createMock(ReleaseDetailNotificationTaskService.class);
         primaryNotificationTarget = createMock(RemoteNotificationTarget.class);
         secondaryNotificationTarget = createMock(RemoteNotificationTarget.class);
         final List<RemoteNotificationTarget> remoteNotificationTargets = new ArrayList<>();
         remoteNotificationTargets.add(primaryNotificationTarget);
         remoteNotificationTargets.add(secondaryNotificationTarget);
         remoteNotificationService = new RemoteNotificationService(
-                releaseDetailStateService, remoteNotificationTargets
+                releaseDetailNotificationTaskService, remoteNotificationTargets
         );
     }
 
     @Test
     public void givenSendRemoteNotifications_whenThereAreNoItemsInQueue_thenDoNothing() throws Exception {
-        expect(releaseDetailStateService.hasNext()).andReturn(false);
+        expect(releaseDetailNotificationTaskService.hasNext()).andReturn(false);
         replay();
         remoteNotificationService.sendRemoteNotifications();
         verify();
@@ -53,14 +53,14 @@ public class RemoteNotificationServiceTest {
     public void givenSendRemoteNotifications_whenThereAreMultipleItemsInQueue_thenProcessAll() throws Exception {
         final short numberOfItems = 5;
         final ReleaseDetail releaseDetail = new ReleaseDetail("version", Instant.now());
-        final RemoteNotificationState primaryNotificationState = new RemoteNotificationState(primaryNotificationTarget, true);
-        final RemoteNotificationState secondaryNotificationState = new RemoteNotificationState(secondaryNotificationTarget, true);
-        final List<RemoteNotificationState> remoteNotificationStates = new ArrayList<>();
-        remoteNotificationStates.add(primaryNotificationState);
-        remoteNotificationStates.add(secondaryNotificationState);
-        final ReleaseDetailState releaseDetailState = new ReleaseDetailState(releaseDetail, remoteNotificationStates);
-        expect(releaseDetailStateService.hasNext()).andReturn(true).times(numberOfItems).andReturn(false);
-        expect(releaseDetailStateService.poll()).andReturn(releaseDetailState).times(numberOfItems);
+        final RemoteNotificationStatus primaryNotificationState = new RemoteNotificationStatus(primaryNotificationTarget, true);
+        final RemoteNotificationStatus secondaryNotificationState = new RemoteNotificationStatus(secondaryNotificationTarget, true);
+        final List<RemoteNotificationStatus> remoteNotificationStatuses = new ArrayList<>();
+        remoteNotificationStatuses.add(primaryNotificationState);
+        remoteNotificationStatuses.add(secondaryNotificationState);
+        final ReleaseDetailNotificationTask releaseDetailNotificationTask = new ReleaseDetailNotificationTask(releaseDetail, remoteNotificationStatuses);
+        expect(releaseDetailNotificationTaskService.hasNext()).andReturn(true).times(numberOfItems).andReturn(false);
+        expect(releaseDetailNotificationTaskService.poll()).andReturn(releaseDetailNotificationTask).times(numberOfItems);
         replay();
         remoteNotificationService.sendRemoteNotifications();
         verify();
@@ -69,19 +69,19 @@ public class RemoteNotificationServiceTest {
     @Test
     public void givenSendRemoteNotifications_whenThereWasFailureDuringSend_thenReQueueNotification() throws Exception {
         final ReleaseDetail releaseDetail = new ReleaseDetail("version", Instant.now());
-        final ReleaseDetailState releaseDetailState = new ReleaseDetailState(releaseDetail, Collections.emptyList());
-        final RemoteNotificationState primaryNotificationState = new RemoteNotificationState(primaryNotificationTarget, false);
-        final RemoteNotificationState secondaryNotificationState = new RemoteNotificationState(secondaryNotificationTarget, false);
-        final List<RemoteNotificationState> remoteNotificationStates = new ArrayList<>();
-        remoteNotificationStates.add(primaryNotificationState);
-        remoteNotificationStates.add(secondaryNotificationState);
-        final ReleaseDetailState updatedReleaseDetailState = new ReleaseDetailState(releaseDetail, remoteNotificationStates);
-        expect(releaseDetailStateService.hasNext()).andReturn(true).once().andReturn(false);
-        expect(releaseDetailStateService.poll()).andReturn(releaseDetailState);
+        final ReleaseDetailNotificationTask releaseDetailNotificationTask = new ReleaseDetailNotificationTask(releaseDetail, Collections.emptyList());
+        final RemoteNotificationStatus primaryNotificationState = new RemoteNotificationStatus(primaryNotificationTarget, false);
+        final RemoteNotificationStatus secondaryNotificationState = new RemoteNotificationStatus(secondaryNotificationTarget, false);
+        final List<RemoteNotificationStatus> remoteNotificationStatuses = new ArrayList<>();
+        remoteNotificationStatuses.add(primaryNotificationState);
+        remoteNotificationStatuses.add(secondaryNotificationState);
+        final ReleaseDetailNotificationTask updatedReleaseDetailNotificationTask = new ReleaseDetailNotificationTask(releaseDetail, remoteNotificationStatuses);
+        expect(releaseDetailNotificationTaskService.hasNext()).andReturn(true).once().andReturn(false);
+        expect(releaseDetailNotificationTaskService.poll()).andReturn(releaseDetailNotificationTask);
         expect(primaryNotificationTarget.notify(releaseDetail)).andReturn(false);
         expect(secondaryNotificationTarget.notify(releaseDetail)).andReturn(false);
         expectLastCall();
-        releaseDetailStateService.reQueue(updatedReleaseDetailState);
+        releaseDetailNotificationTaskService.reQueue(updatedReleaseDetailNotificationTask);
         replay();
         remoteNotificationService.sendRemoteNotifications();
         verify();
@@ -90,9 +90,9 @@ public class RemoteNotificationServiceTest {
     @Test
     public void givenSendRemoteNotifications_whenThereIsNewItemInQueue_thenSendNotificationsAndDeleteItemFromQueue() throws Exception {
         final ReleaseDetail releaseDetail = new ReleaseDetail("version", Instant.now());
-        final ReleaseDetailState releaseDetailState = new ReleaseDetailState(releaseDetail, Collections.emptyList());
-        expect(releaseDetailStateService.hasNext()).andReturn(true).once().andReturn(false);
-        expect(releaseDetailStateService.poll()).andReturn(releaseDetailState);
+        final ReleaseDetailNotificationTask releaseDetailNotificationTask = new ReleaseDetailNotificationTask(releaseDetail, Collections.emptyList());
+        expect(releaseDetailNotificationTaskService.hasNext()).andReturn(true).once().andReturn(false);
+        expect(releaseDetailNotificationTaskService.poll()).andReturn(releaseDetailNotificationTask);
         expect(primaryNotificationTarget.notify(releaseDetail)).andReturn(true);
         expect(secondaryNotificationTarget.notify(releaseDetail)).andReturn(true);
         replay();
@@ -103,14 +103,14 @@ public class RemoteNotificationServiceTest {
     @Test
     public void givenSendRemoteNotifications_whenThereAreOnlySomeUnfinishedItems_thenSendOnlyUnfinishedNotifications() throws Exception {
         final ReleaseDetail releaseDetail = new ReleaseDetail("version", Instant.now());
-        final RemoteNotificationState primaryNotificationState = new RemoteNotificationState(primaryNotificationTarget, true);
-        final RemoteNotificationState secondaryNotificationState = new RemoteNotificationState(secondaryNotificationTarget, false);
-        final List<RemoteNotificationState> remoteNotificationStates = new ArrayList<>();
-        remoteNotificationStates.add(primaryNotificationState);
-        remoteNotificationStates.add(secondaryNotificationState);
-        final ReleaseDetailState releaseDetailState = new ReleaseDetailState(releaseDetail, remoteNotificationStates);
-        expect(releaseDetailStateService.hasNext()).andReturn(true).once().andReturn(false);
-        expect(releaseDetailStateService.poll()).andReturn(releaseDetailState);
+        final RemoteNotificationStatus primaryNotificationState = new RemoteNotificationStatus(primaryNotificationTarget, true);
+        final RemoteNotificationStatus secondaryNotificationState = new RemoteNotificationStatus(secondaryNotificationTarget, false);
+        final List<RemoteNotificationStatus> remoteNotificationStatuses = new ArrayList<>();
+        remoteNotificationStatuses.add(primaryNotificationState);
+        remoteNotificationStatuses.add(secondaryNotificationState);
+        final ReleaseDetailNotificationTask releaseDetailNotificationTask = new ReleaseDetailNotificationTask(releaseDetail, remoteNotificationStatuses);
+        expect(releaseDetailNotificationTaskService.hasNext()).andReturn(true).once().andReturn(false);
+        expect(releaseDetailNotificationTaskService.poll()).andReturn(releaseDetailNotificationTask);
         expect(secondaryNotificationTarget.notify(releaseDetail)).andReturn(true);
         replay();
         remoteNotificationService.sendRemoteNotifications();
@@ -118,10 +118,10 @@ public class RemoteNotificationServiceTest {
     }
 
     private void replay() {
-        EasyMock.replay(releaseDetailStateService, primaryNotificationTarget, secondaryNotificationTarget);
+        EasyMock.replay(releaseDetailNotificationTaskService, primaryNotificationTarget, secondaryNotificationTarget);
     }
 
     private void verify() {
-        EasyMock.verify(releaseDetailStateService, primaryNotificationTarget, secondaryNotificationTarget);
+        EasyMock.verify(releaseDetailNotificationTaskService, primaryNotificationTarget, secondaryNotificationTarget);
     }
 }
