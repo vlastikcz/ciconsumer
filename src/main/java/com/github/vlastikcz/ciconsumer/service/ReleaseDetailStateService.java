@@ -1,7 +1,6 @@
 package com.github.vlastikcz.ciconsumer.service;
 
 import java.util.Collections;
-import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,17 +25,18 @@ public class ReleaseDetailStateService {
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
-    public Stream<ReleaseDetailState> asStream() {
-        log.debug("action.call=asStream");
-        final Stream<ReleaseDetailState> releaseDetailStateStream = releaseDetailStateRepository.asStream();
-        log.debug("action.result=asStream, result=[{} items]", releaseDetailStateRepository.size());
-        return releaseDetailStateStream;
+    public ReleaseDetailState poll() {
+        log.debug("action.call=poll");
+        final ReleaseDetailState result = releaseDetailStateRepository.poll();
+        log.debug("action.result=poll, result=[{}]", result);
+        return result;
     }
 
-    public void delete(ReleaseDetailState releaseDetailState) {
-        log.debug("action.call=delete, arguments=[{}]", releaseDetailState);
-        releaseDetailStateRepository.delete(releaseDetailState);
-        log.debug("action.done=delete");
+    public boolean hasNext() {
+        log.debug("action.call=hasNext");
+        final boolean result = releaseDetailStateRepository.hasNext();
+        log.debug("action.result=hasNext, result=[{}]", result);
+        return result;
     }
 
     public void create(ReleaseDetail releaseDetail) {
@@ -47,9 +47,9 @@ public class ReleaseDetailStateService {
         log.debug("action.done=create");
     }
 
-    public void update(ReleaseDetailState original, ReleaseDetailState updated) {
-        log.debug("action.call=update, arguments=[{}, {}]", original, updated);
-        releaseDetailStateRepository.update(original, updated);
-        log.debug("action.done=update");
+    public void reQueue(ReleaseDetailState releaseDetail) {
+        log.debug("action.call=reQueue, arguments=[{}]", releaseDetail);
+        releaseDetailStateRepository.create(releaseDetail);
+        log.debug("action.done=reQueue");
     }
 }

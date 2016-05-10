@@ -46,7 +46,10 @@ public class RemoteNotificationService {
 
     @Async
     public void sendRemoteNotifications() {
-        releaseDetailStateService.asStream().forEach(s -> sendRemoteNotification(s));
+        while(releaseDetailStateService.hasNext()) {
+            final ReleaseDetailState releaseDetailState = releaseDetailStateService.poll();
+            sendRemoteNotification(releaseDetailState);
+        }
     }
 
     private void sendRemoteNotification(ReleaseDetailState releaseDetailState) {
@@ -58,11 +61,8 @@ public class RemoteNotificationService {
 
     private void updateReleaseDetailStateQueue(ReleaseDetailState releaseDetailState, List<RemoteNotificationState> result) {
         log.debug("action.call=updateReleaseDetailStateQueue, arguments=[{}, {}]", releaseDetailState, result);
-        if (allNotificationFinished(result)) {
-            releaseDetailStateService.delete(releaseDetailState);
-            log.debug("action.result=updateReleaseDetailStateQueue, result=[done]");
-        } else {
-            releaseDetailStateService.update(releaseDetailState, new ReleaseDetailState(releaseDetailState.getReleaseDetail(), result));
+        if (anyNotificationHasFailed(result)) {
+            releaseDetailStateService.reQueue(new ReleaseDetailState(releaseDetailState.getReleaseDetail(), result));
             log.debug("action.result=updateReleaseDetailStateQueue, result=[re-queued]");
         }
     }
@@ -81,7 +81,7 @@ public class RemoteNotificationService {
         return remoteNotificationStates.stream().anyMatch(s -> s.getRemoteNotificationTarget().equals(remoteNotificationTarget) && s.isFinished());
     }
 
-    private static boolean allNotificationFinished(List<RemoteNotificationState> remoteNotificationStates) {
-        return remoteNotificationStates.stream().allMatch(s -> s.isFinished());
+    private static boolean anyNotificationHasFailed(List<RemoteNotificationState> remoteNotificationStates) {
+        return remoteNotificationStates.stream().anyMatch(s -> !s.isFinished());
     }
 }

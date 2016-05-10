@@ -2,7 +2,6 @@ package com.github.vlastikcz.ciconsumer.domain.repository;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.stream.Stream;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +11,7 @@ import com.github.vlastikcz.ciconsumer.UnitTest;
 import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetail;
 import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetailState;
 
+import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @Category(UnitTest.class)
@@ -25,8 +25,8 @@ public class ReleaseDetailTaskRepositoryTest {
 
     @Test
     public void givenAsStream_whenRepositoryIsEmpty_ThenReturnEmptyStream() throws Exception {
-        final Stream<ReleaseDetailState> result = ciReleaseRepository.asStream();
-        assertTrue(result.count() == 0);
+        final ReleaseDetailState result = ciReleaseRepository.poll();
+        assertNull(result);
     }
 
     @Test(expected = NullPointerException.class)
@@ -48,8 +48,8 @@ public class ReleaseDetailTaskRepositoryTest {
         final ReleaseDetailState releaseDetailState = new ReleaseDetailState(releaseDetail, Collections.emptyList());
         ciReleaseRepository.create(releaseDetailState);
 
-        final Stream<ReleaseDetailState> result = ciReleaseRepository.asStream();
-        assertTrue(result.allMatch(i -> i.equals(releaseDetailState)));
+        final ReleaseDetailState result = ciReleaseRepository.poll();
+        assertTrue(result.equals(releaseDetailState));
     }
 
 }

@@ -3,7 +3,6 @@ package com.github.vlastikcz.ciconsumer.domain.repository;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Stream;
 
 import org.springframework.stereotype.Repository;
 
@@ -17,8 +16,12 @@ public class ReleaseDetailStateRepository {
         this.queue = new ConcurrentLinkedQueue<>();
     }
 
-    public Stream<ReleaseDetailState> asStream() {
-        return queue.stream();
+    public ReleaseDetailState poll() {
+        return queue.poll();
+    }
+
+    public boolean hasNext() {
+        return queue.iterator().hasNext();
     }
 
     public void create(ReleaseDetailState releaseDetailState) {
@@ -31,14 +34,4 @@ public class ReleaseDetailStateRepository {
         queue.remove(releaseDetailState);
     }
 
-    public void update(ReleaseDetailState original, ReleaseDetailState updated) {
-        Objects.requireNonNull(original, "'original' cannot be null");
-        Objects.requireNonNull(updated, "'updated' cannot be null");
-        queue.remove(original);
-        queue.add(updated);
-    }
-
-    public int size() {
-        return queue.size();
-    }
 }
