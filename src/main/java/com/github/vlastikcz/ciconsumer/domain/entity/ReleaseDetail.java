@@ -8,13 +8,13 @@ import lombok.ToString;
 
 @EqualsAndHashCode
 @ToString
-public class CIRelease {
+public class ReleaseDetail {
     @Getter
     private final String version;
     @Getter
     private final Instant timestamp;
 
-    public CIRelease(String version, Instant timestamp) {
+    public ReleaseDetail(String version, Instant timestamp) {
         this.version = version;
         this.timestamp = timestamp;
     }

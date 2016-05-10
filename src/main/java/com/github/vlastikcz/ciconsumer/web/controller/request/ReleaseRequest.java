@@ -1,4 +1,4 @@
-package com.github.vlastikcz.ciconsumer.web.api;
+package com.github.vlastikcz.ciconsumer.web.controller.request;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 
 @Data
-public class CIReleaseControllerRequest implements Serializable {
+public class ReleaseRequest implements Serializable {
     @JsonSerialize
     @JsonProperty("number_of_release")
     private String numberOfRelease;

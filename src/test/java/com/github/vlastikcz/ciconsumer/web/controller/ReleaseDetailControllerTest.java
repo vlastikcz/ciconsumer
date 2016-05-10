@@ -1,4 +1,4 @@
-package com.github.vlastikcz.ciconsumer.web.api;
+package com.github.vlastikcz.ciconsumer.web.controller;
 
 import java.nio.charset.Charset;
 
@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 @SpringApplicationConfiguration(classes = Application.class)
 @WebAppConfiguration
 @Category(IntegrationTest.class)
-public class CIReleaseControllerTest {
+public class ReleaseDetailControllerTest {
     private static final MediaType CONTENT_TYPE = new MediaType(
             MediaType.APPLICATION_JSON.getType(),
             MediaType.APPLICATION_JSON.getSubtype(),
@@ -45,7 +45,7 @@ public class CIReleaseControllerTest {
     @Test
     public void givenPost_whenEmptyRequestReceived_thenReturnError() throws Exception {
         final String request = "";
-        mockMvc.perform(post(CIReleaseController.CI_RELEASE_ENDPOINT_PATH)
+        mockMvc.perform(post(ReleaseController.RELEASE_ENDPOINT_PATH)
                 .content(request)
                 .contentType(CONTENT_TYPE))
                 .andExpect(status().isBadRequest());
@@ -54,7 +54,7 @@ public class CIReleaseControllerTest {
     @Test
     public void givenPost_whenEmptyValuesReceived_thenReturnError() throws Exception {
         final String request = "{\"number_of_release\": \"\", \"datetime\": \"\"}";
-        mockMvc.perform(post(CIReleaseController.CI_RELEASE_ENDPOINT_PATH)
+        mockMvc.perform(post(ReleaseController.RELEASE_ENDPOINT_PATH)
                 .content(request)
                 .contentType(CONTENT_TYPE))
                 .andExpect(status().isBadRequest());
@@ -63,7 +63,7 @@ public class CIReleaseControllerTest {
     @Test
     public void givenPost_whenEmptyEntityReceived_thenReturnError() throws Exception {
         final String request = "{\"number_of_release\": null, \"datetime\": null}";
-        mockMvc.perform(post(CIReleaseController.CI_RELEASE_ENDPOINT_PATH)
+        mockMvc.perform(post(ReleaseController.RELEASE_ENDPOINT_PATH)
                 .content(request)
                 .contentType(CONTENT_TYPE))
                 .andExpect(status().isBadRequest());
@@ -73,7 +73,7 @@ public class CIReleaseControllerTest {
     public void givenPost_whenValidEntityReceived_thenReturnStatusCreated() throws Exception {
         final String request = "{\"number_of_release\": \"2016.20\", \"datetime\": \"2016-01-01 23:59:30\"}";
 
-        mockMvc.perform(post(CIReleaseController.CI_RELEASE_ENDPOINT_PATH)
+        mockMvc.perform(post(ReleaseController.RELEASE_ENDPOINT_PATH)
                 .content(request)
                 .contentType(CONTENT_TYPE))
                 .andExpect(status().isCreated());
@@ -83,7 +83,7 @@ public class CIReleaseControllerTest {
     public void givenPost_whenInvalidDateTimeReceived_thenReturnError() throws Exception {
         final String request = "{\"number_of_release\": \"1\", \"datetime\": \"invalidDateTime\"}";
 
-        mockMvc.perform(post(CIReleaseController.CI_RELEASE_ENDPOINT_PATH)
+        mockMvc.perform(post(ReleaseController.RELEASE_ENDPOINT_PATH)
                 .content(request)
                 .contentType(CONTENT_TYPE))
                 .andExpect(status().isBadRequest());

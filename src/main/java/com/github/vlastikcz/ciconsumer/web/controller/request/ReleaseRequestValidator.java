@@ -1,4 +1,4 @@
-package com.github.vlastikcz.ciconsumer.web.api;
+package com.github.vlastikcz.ciconsumer.web.controller.request;
 
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -6,10 +6,10 @@ import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
 @Component
-public class CIReleaseControllerRequestValidator implements Validator {
+public class ReleaseRequestValidator implements Validator {
     @Override
     public boolean supports(Class<?> validatedClass) {
-        return CIReleaseControllerRequest.class.equals(validatedClass);
+        return ReleaseRequest.class.equals(validatedClass);
     }
 
     @Override
