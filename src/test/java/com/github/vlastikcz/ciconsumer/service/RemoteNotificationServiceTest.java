@@ -1,4 +1,4 @@
-package com.github.vlastikcz.ciconsumer.service.target;
+package com.github.vlastikcz.ciconsumer.service;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -14,8 +14,7 @@ import com.github.vlastikcz.ciconsumer.UnitTest;
 import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetail;
 import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetailState;
 import com.github.vlastikcz.ciconsumer.domain.entity.RemoteNotificationState;
-import com.github.vlastikcz.ciconsumer.service.ReleaseDetailStateService;
-import com.github.vlastikcz.ciconsumer.service.RemoteNotificationService;
+import com.github.vlastikcz.ciconsumer.service.target.RemoteNotificationTarget;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
