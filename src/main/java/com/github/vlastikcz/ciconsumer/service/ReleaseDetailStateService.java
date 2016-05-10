@@ -43,7 +43,7 @@ public class ReleaseDetailStateService {
         log.debug("action.call=create, arguments=[{}]", releaseDetail);
         final ReleaseDetailState releaseDetailState = new ReleaseDetailState(releaseDetail, Collections.emptyList());
         releaseDetailStateRepository.create(releaseDetailState);
-        applicationEventPublisher.publishEvent(new ReleaseDetailStateSaveNewEvent());
+        applicationEventPublisher.publishEvent(new ReleaseDetailStateCreateEvent());
         log.debug("action.done=create");
     }
 

@@ -1,4 +1,4 @@
 package com.github.vlastikcz.ciconsumer.service;
 
-public class ReleaseDetailStateSaveNewEvent {
+public class ReleaseDetailStateCreateEvent {
 }

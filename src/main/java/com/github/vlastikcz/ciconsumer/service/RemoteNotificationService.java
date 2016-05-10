@@ -30,13 +30,23 @@ public class RemoteNotificationService {
         this.remoteNotificationTargets = remoteNotificationTargets;
     }
 
-    @Async
     @Scheduled(fixedDelay = NOTIFICATION_DELAY_IN_MILLISECONDS)
-    @EventListener(ReleaseDetailStateSaveNewEvent.class)
+    public void sendRemoteNotificationsScheduled() {
+        log.debug("action.call=sendRemoteNotificationsScheduled");
+        sendRemoteNotifications();
+        log.debug("action.done=sendRemoteNotificationsScheduled");
+    }
+
+    @EventListener
+    public void sendRemoteNotificationsFromEvent(ReleaseDetailStateCreateEvent event) {
+        log.debug("action.call=sendRemoteNotificationsFromEvent, arguments=[{}]", event);
+        sendRemoteNotifications();
+        log.debug("action.done=sendRemoteNotificationsFromEvent");
+    }
+
+    @Async
     public void sendRemoteNotifications() {
-        log.debug("action.call=sendRemoteNotifications");
         releaseDetailStateService.asStream().forEach(s -> sendRemoteNotification(s));
-        log.debug("action.done=sendRemoteNotifications");
     }
 
     private void sendRemoteNotification(ReleaseDetailState releaseDetailState) {
