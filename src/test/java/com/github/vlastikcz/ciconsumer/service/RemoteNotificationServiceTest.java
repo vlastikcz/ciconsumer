@@ -27,6 +27,7 @@ public class RemoteNotificationServiceTest {
     private RemoteNotificationTarget secondaryNotificationTarget;
     private RemoteNotificationTarget primaryNotificationTarget;
 
+
     @Before
     public void setup() {
         releaseDetailNotificationTaskService = createMock(ReleaseDetailNotificationTaskService.class);
@@ -35,8 +36,9 @@ public class RemoteNotificationServiceTest {
         final List<RemoteNotificationTarget> remoteNotificationTargets = new ArrayList<>();
         remoteNotificationTargets.add(primaryNotificationTarget);
         remoteNotificationTargets.add(secondaryNotificationTarget);
+        final RemoteNotificationResultService remoteNotificationResultService = new RemoteNotificationResultService(releaseDetailNotificationTaskService);
         remoteNotificationService = new RemoteNotificationService(
-                releaseDetailNotificationTaskService, remoteNotificationTargets
+                releaseDetailNotificationTaskService, remoteNotificationResultService, remoteNotificationTargets
         );
     }
 
@@ -112,6 +114,7 @@ public class RemoteNotificationServiceTest {
         expect(releaseDetailNotificationTaskService.hasNext()).andReturn(true).once().andReturn(false);
         expect(releaseDetailNotificationTaskService.poll()).andReturn(releaseDetailNotificationTask);
         expect(secondaryNotificationTarget.notify(releaseDetail)).andReturn(true);
+        expectLastCall();
         replay();
         remoteNotificationService.sendRemoteNotifications();
         verify();

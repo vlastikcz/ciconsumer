@@ -21,12 +21,15 @@ public class RemoteNotificationService {
     private static final int NOTIFICATION_JOB_DELAY_IN_MILLISECONDS = 15000;
 
     private final ReleaseDetailNotificationTaskService releaseDetailNotificationTaskService;
+    private final RemoteNotificationResultService remoteNotificationResultService;
     private final List<RemoteNotificationTarget> remoteNotificationTargets;
 
     @Autowired
     public RemoteNotificationService(ReleaseDetailNotificationTaskService releaseDetailNotificationTaskService,
+                                     RemoteNotificationResultService remoteNotificationResultService,
                                      List<RemoteNotificationTarget> remoteNotificationTargets) {
         this.releaseDetailNotificationTaskService = releaseDetailNotificationTaskService;
+        this.remoteNotificationResultService = remoteNotificationResultService;
         this.remoteNotificationTargets = remoteNotificationTargets;
     }
 
@@ -59,17 +62,7 @@ public class RemoteNotificationService {
                 .filter(t -> t != null)
                 .map(t -> sendRemoteNotification(releaseDetailNotificationTask, t))
                 .collect(Collectors.toList());
-        updateReleaseDetailStateQueue(releaseDetailNotificationTask, result);
-    }
-
-    private void updateReleaseDetailStateQueue(ReleaseDetailNotificationTask releaseDetailNotificationTask, List<RemoteNotificationStatus> result) {
-        log.debug("action.call=updateReleaseDetailStateQueue, arguments=[{}, {}]", releaseDetailNotificationTask, result);
-        if (anyNotificationHasFailed(result)) {
-            releaseDetailNotificationTaskService.reQueue(new ReleaseDetailNotificationTask(releaseDetailNotificationTask.getReleaseDetail(), result));
-            log.debug("action.result=updateReleaseDetailStateQueue, result=[re-queued]");
-        } else {
-            log.debug("action.result=updateReleaseDetailStateQueue, result=[done]");
-        }
+        remoteNotificationResultService.handleRemoteNotificationResult(releaseDetailNotificationTask, result);
     }
 
     private RemoteNotificationStatus sendRemoteNotification(ReleaseDetailNotificationTask releaseDetailNotificationTask, RemoteNotificationTarget remoteNotificationTarget) {
@@ -86,7 +79,4 @@ public class RemoteNotificationService {
         return remoteNotificationStatuses.stream().anyMatch(s -> s.getRemoteNotificationTarget().equals(remoteNotificationTarget) && s.isFinished());
     }
 
-    private static boolean anyNotificationHasFailed(List<RemoteNotificationStatus> remoteNotificationStatuses) {
-        return remoteNotificationStatuses.stream().anyMatch(s -> !s.isFinished());
-    }
 }
