@@ -38,14 +38,14 @@ public class RemoteNotificationService {
     }
 
     @EventListener
+    @Async
     public void sendRemoteNotificationsFromEvent(ReleaseDetailStateCreateEvent event) {
         log.debug("action.call=sendRemoteNotificationsFromEvent, arguments=[{}]", event);
         sendRemoteNotifications();
         log.debug("action.done=sendRemoteNotificationsFromEvent");
     }
 
-    @Async
-    public void sendRemoteNotifications() {
+    void sendRemoteNotifications() {
         while (releaseDetailStateService.hasNext()) {
             final ReleaseDetailState releaseDetailState = releaseDetailStateService.poll();
             if (releaseDetailState != null) {
