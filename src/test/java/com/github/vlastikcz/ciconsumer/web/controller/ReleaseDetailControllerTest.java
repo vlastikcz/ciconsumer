@@ -14,7 +14,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.github.vlastikcz.Application;
+import com.github.vlastikcz.ciconsumer.Application;
 import com.github.vlastikcz.ciconsumer.IntegrationTest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,7 +39,7 @@ public class ReleaseDetailControllerTest {
 
     @Before
     public void setup() throws Exception {
-        this.mockMvc = webAppContextSetup(webApplicationContext).build();
+        mockMvc = webAppContextSetup(webApplicationContext).build();
     }
 
     @Test

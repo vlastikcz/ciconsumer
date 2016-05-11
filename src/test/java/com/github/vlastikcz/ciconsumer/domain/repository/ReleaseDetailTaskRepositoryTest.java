@@ -60,7 +60,8 @@ public class ReleaseDetailTaskRepositoryTest {
 
     @Test
     public void givenHasNext_whenTheQueueIsNotEmpty_thenReturnTrue() throws Exception {
-        final ReleaseDetail releaseDetail = new ReleaseDetail("givenCreate_whenValidEntityReceived_thenSaveItem", Instant.parse("2016-05-03T10:15:30Z"));
+        final ReleaseDetail releaseDetail = new ReleaseDetail("givenHasNext_whenTheQueueIsNotEmpty_thenReturnTrue",
+                Instant.parse("2016-05-03T10:15:30Z"));
         final ReleaseDetailNotificationTask releaseDetailNotificationTask = new ReleaseDetailNotificationTask(releaseDetail, Collections.emptyList());
         ciReleaseRepository.create(releaseDetailNotificationTask);
 
@@ -74,7 +75,8 @@ public class ReleaseDetailTaskRepositoryTest {
 
     @Test
     public void givenIsEmpty_whenTheQueueIsNotEmpty_thenReturnFalse() throws Exception {
-        final ReleaseDetail releaseDetail = new ReleaseDetail("givenCreate_whenValidEntityReceived_thenSaveItem", Instant.parse("2016-05-03T10:15:30Z"));
+        final ReleaseDetail releaseDetail = new ReleaseDetail("givenIsEmpty_whenTheQueueIsNotEmpty_thenReturnFalse",
+                Instant.parse("2016-05-03T10:15:30Z"));
         final ReleaseDetailNotificationTask releaseDetailNotificationTask = new ReleaseDetailNotificationTask(releaseDetail, Collections.emptyList());
         ciReleaseRepository.create(releaseDetailNotificationTask);
 

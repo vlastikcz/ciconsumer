@@ -13,6 +13,8 @@ import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetailNotificationTa
 import com.github.vlastikcz.ciconsumer.domain.repository.ReleaseDetailNotificationTaskRepository;
 import com.github.vlastikcz.ciconsumer.service.event.ReleaseDetailNotificationTaskCreateEvent;
 
+import static org.easymock.EasyMock.expectLastCall;
+
 public class ReleaseDetailNotificationTaskServiceTest {
 
     private ReleaseDetailNotificationTaskRepository releaseDetailNotificationTaskRepository;
@@ -34,7 +36,7 @@ public class ReleaseDetailNotificationTaskServiceTest {
         final ReleaseDetailNotificationTask releaseDetailNotificationTask = new ReleaseDetailNotificationTask(releaseDetail, Collections.emptyList());
         final ReleaseDetailNotificationTaskCreateEvent event = new ReleaseDetailNotificationTaskCreateEvent(releaseDetailNotificationTask);
         applicationEventPublisher.publishEvent(event);
-        EasyMock.expectLastCall();
+        expectLastCall();
         replay();
         releaseDetailNotificationTaskService.create(releaseDetail);
         verify();
@@ -45,7 +47,7 @@ public class ReleaseDetailNotificationTaskServiceTest {
         final ReleaseDetail releaseDetail = new ReleaseDetail("version", Instant.now());
         final ReleaseDetailNotificationTask releaseDetailNotificationTask = new ReleaseDetailNotificationTask(releaseDetail, Collections.emptyList());
         releaseDetailNotificationTaskRepository.create(releaseDetailNotificationTask);
-        EasyMock.expectLastCall();
+        expectLastCall();
         replay();
         releaseDetailNotificationTaskService.reQueue(releaseDetailNotificationTask);
         verify();

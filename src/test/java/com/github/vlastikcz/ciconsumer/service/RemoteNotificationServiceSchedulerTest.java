@@ -8,6 +8,8 @@ import org.junit.Test;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.TaskScheduler;
 
+import static org.easymock.EasyMock.expect;
+
 public class RemoteNotificationServiceSchedulerTest {
     private TaskScheduler taskScheduler;
     private ApplicationEventPublisher applicationEventPublisher;
@@ -22,7 +24,7 @@ public class RemoteNotificationServiceSchedulerTest {
     public void givenSchedule_whenTheTaskWasNotAlreadyScheduled_thenScheduleTask() throws Exception {
         final RemoteNotificationServiceScheduler scheduler = new RemoteNotificationServiceScheduler(taskScheduler, applicationEventPublisher);
         final ScheduledFuture scheduledFuture = EasyMock.createMock(ScheduledFuture.class);
-        EasyMock.expect(taskScheduler.scheduleWithFixedDelay(EasyMock.anyObject(Runnable.class), EasyMock.anyLong())).andReturn(scheduledFuture);
+        expect(taskScheduler.scheduleWithFixedDelay(EasyMock.anyObject(Runnable.class), EasyMock.anyLong())).andReturn(scheduledFuture);
         replay();
         EasyMock.replay(scheduledFuture);
         scheduler.schedule();
@@ -34,8 +36,8 @@ public class RemoteNotificationServiceSchedulerTest {
     public void givenSchedule_whenTheTaskWasAlreadyScheduled_thenDoNotScheduleTaskAgain() throws Exception {
         final RemoteNotificationServiceScheduler scheduler = new RemoteNotificationServiceScheduler(taskScheduler, applicationEventPublisher);
         final ScheduledFuture scheduledFuture = EasyMock.createMock(ScheduledFuture.class);
-        EasyMock.expect(taskScheduler.scheduleWithFixedDelay(EasyMock.anyObject(Runnable.class), EasyMock.anyLong())).andReturn(scheduledFuture);
-        EasyMock.expect(scheduledFuture.isCancelled()).andReturn(false);
+        expect(taskScheduler.scheduleWithFixedDelay(EasyMock.anyObject(Runnable.class), EasyMock.anyLong())).andReturn(scheduledFuture);
+        expect(scheduledFuture.isCancelled()).andReturn(false);
         replay();
         EasyMock.replay(scheduledFuture);
         scheduler.schedule();
@@ -48,8 +50,8 @@ public class RemoteNotificationServiceSchedulerTest {
     public void givenSchedule_whenSchedulingWasCanceled_thenScheduleTaskAgain() throws Exception {
         final RemoteNotificationServiceScheduler scheduler = new RemoteNotificationServiceScheduler(taskScheduler, applicationEventPublisher);
         final ScheduledFuture scheduledFuture = EasyMock.createMock(ScheduledFuture.class);
-        EasyMock.expect(taskScheduler.scheduleWithFixedDelay(EasyMock.anyObject(Runnable.class), EasyMock.anyLong())).andReturn(scheduledFuture).times(2);
-        EasyMock.expect(scheduledFuture.isCancelled()).andReturn(true);
+        expect(taskScheduler.scheduleWithFixedDelay(EasyMock.anyObject(Runnable.class), EasyMock.anyLong())).andReturn(scheduledFuture).times(2);
+        expect(scheduledFuture.isCancelled()).andReturn(true);
         replay();
         EasyMock.replay(scheduledFuture);
         scheduler.schedule();
@@ -70,8 +72,8 @@ public class RemoteNotificationServiceSchedulerTest {
     public void givenUnSchedule_whenTheTaskIsScheduled_thenCancelSchedule() throws Exception {
         final RemoteNotificationServiceScheduler scheduler = new RemoteNotificationServiceScheduler(taskScheduler, applicationEventPublisher);
         final ScheduledFuture scheduledFuture = EasyMock.createMock(ScheduledFuture.class);
-        EasyMock.expect(taskScheduler.scheduleWithFixedDelay(EasyMock.anyObject(Runnable.class), EasyMock.anyLong())).andReturn(scheduledFuture);
-        EasyMock.expect(scheduledFuture.cancel(false)).andReturn(true);
+        expect(taskScheduler.scheduleWithFixedDelay(EasyMock.anyObject(Runnable.class), EasyMock.anyLong())).andReturn(scheduledFuture);
+        expect(scheduledFuture.cancel(false)).andReturn(true);
         replay();
         EasyMock.replay(scheduledFuture);
         scheduler.schedule();
