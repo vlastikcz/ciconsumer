@@ -29,4 +29,9 @@ public class ReleaseDetailNotificationTaskRepository {
         queue.add(releaseDetailNotificationTask);
     }
 
+    public boolean isEmpty() {
+        return queue.isEmpty();
+    }
+
+
 }

@@ -2,7 +2,6 @@ package com.github.vlastikcz.ciconsumer.service;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.github.vlastikcz.ciconsumer.domain.entity.ReleaseDetailNotificationTask;
@@ -13,21 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class RemoteNotificationResultService {
-    private final ReleaseDetailNotificationTaskService releaseDetailNotificationTaskService;
 
-    @Autowired
-    public RemoteNotificationResultService(ReleaseDetailNotificationTaskService releaseDetailNotificationTaskService) {
-        this.releaseDetailNotificationTaskService = releaseDetailNotificationTaskService;
-    }
-
-    public void handleRemoteNotificationResult(ReleaseDetailNotificationTask releaseDetailNotificationTask, List<RemoteNotificationStatus> result) {
-        log.debug("action.call=updateReleaseDetailStateQueue, arguments=[{}, {}]", releaseDetailNotificationTask, result);
-        if (anyNotificationHasFailed(result)) {
-            releaseDetailNotificationTaskService.reQueue(new ReleaseDetailNotificationTask(releaseDetailNotificationTask.getReleaseDetail(), result));
-            log.debug("action.result=updateReleaseDetailStateQueue, result=[re-queued]");
-        } else {
-            log.debug("action.result=updateReleaseDetailStateQueue, result=[done]");
-        }
+    public boolean findIfNotificationTaskHasAnyFailure(ReleaseDetailNotificationTask releaseDetailNotificationTask,
+                                                       List<RemoteNotificationStatus> remoteNotificationStatuses) {
+        log.debug("action.call=findIfNotificationTaskHasAnyFailure, arguments=[{}, {}]", releaseDetailNotificationTask, remoteNotificationStatuses);
+        final boolean result = anyNotificationHasFailed(remoteNotificationStatuses);
+        log.debug("action.result=findIfNotificationTaskHasAnyFailure, result=[{}]", result);
+        return result;
     }
 
     private static boolean anyNotificationHasFailed(List<RemoteNotificationStatus> remoteNotificationStatuses) {

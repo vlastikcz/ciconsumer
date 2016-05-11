@@ -26,6 +26,7 @@ public class RemoteNotificationServiceTest {
     private ReleaseDetailNotificationTaskService releaseDetailNotificationTaskService;
     private RemoteNotificationTarget secondaryNotificationTarget;
     private RemoteNotificationTarget primaryNotificationTarget;
+    private RemoteNotificationServiceScheduler remoteNotificationServiceScheduler;
 
 
     @Before
@@ -33,20 +34,24 @@ public class RemoteNotificationServiceTest {
         releaseDetailNotificationTaskService = createMock(ReleaseDetailNotificationTaskService.class);
         primaryNotificationTarget = createMock(RemoteNotificationTarget.class);
         secondaryNotificationTarget = createMock(RemoteNotificationTarget.class);
+        remoteNotificationServiceScheduler = createMock(RemoteNotificationServiceScheduler.class);
         final List<RemoteNotificationTarget> remoteNotificationTargets = new ArrayList<>();
         remoteNotificationTargets.add(primaryNotificationTarget);
         remoteNotificationTargets.add(secondaryNotificationTarget);
-        final RemoteNotificationResultService remoteNotificationResultService = new RemoteNotificationResultService(releaseDetailNotificationTaskService);
+        final RemoteNotificationResultService remoteNotificationResultService = new RemoteNotificationResultService();
         remoteNotificationService = new RemoteNotificationService(
-                releaseDetailNotificationTaskService, remoteNotificationResultService, remoteNotificationTargets
-        );
+                releaseDetailNotificationTaskService, remoteNotificationResultService, remoteNotificationTargets,
+                remoteNotificationServiceScheduler);
     }
 
     @Test
     public void givenSendRemoteNotifications_whenThereAreNoItemsInQueue_thenDoNothing() throws Exception {
         expect(releaseDetailNotificationTaskService.hasNext()).andReturn(false);
+        expect(releaseDetailNotificationTaskService.queueEmpty()).andReturn(true);
+        remoteNotificationServiceScheduler.unSchedule();
+        expectLastCall();
         replay();
-        remoteNotificationService.sendRemoteNotifications();
+        remoteNotificationService.sendQueuedRemoteNotifications();
         verify();
     }
 
@@ -63,8 +68,11 @@ public class RemoteNotificationServiceTest {
         final ReleaseDetailNotificationTask releaseDetailNotificationTask = new ReleaseDetailNotificationTask(releaseDetail, remoteNotificationStatuses);
         expect(releaseDetailNotificationTaskService.hasNext()).andReturn(true).times(numberOfItems).andReturn(false);
         expect(releaseDetailNotificationTaskService.poll()).andReturn(releaseDetailNotificationTask).times(numberOfItems);
+        expect(releaseDetailNotificationTaskService.queueEmpty()).andReturn(true);
+        remoteNotificationServiceScheduler.unSchedule();
+        expectLastCall();
         replay();
-        remoteNotificationService.sendRemoteNotifications();
+        remoteNotificationService.sendQueuedRemoteNotifications();
         verify();
     }
 
@@ -82,10 +90,13 @@ public class RemoteNotificationServiceTest {
         expect(releaseDetailNotificationTaskService.poll()).andReturn(releaseDetailNotificationTask);
         expect(primaryNotificationTarget.notify(releaseDetail)).andReturn(false);
         expect(secondaryNotificationTarget.notify(releaseDetail)).andReturn(false);
-        expectLastCall();
+        expect(releaseDetailNotificationTaskService.queueEmpty()).andReturn(false);
         releaseDetailNotificationTaskService.reQueue(updatedReleaseDetailNotificationTask);
+        expectLastCall();
+        remoteNotificationServiceScheduler.schedule();
+        expectLastCall();
         replay();
-        remoteNotificationService.sendRemoteNotifications();
+        remoteNotificationService.sendQueuedRemoteNotifications();
         verify();
     }
 
@@ -97,8 +108,11 @@ public class RemoteNotificationServiceTest {
         expect(releaseDetailNotificationTaskService.poll()).andReturn(releaseDetailNotificationTask);
         expect(primaryNotificationTarget.notify(releaseDetail)).andReturn(true);
         expect(secondaryNotificationTarget.notify(releaseDetail)).andReturn(true);
+        expect(releaseDetailNotificationTaskService.queueEmpty()).andReturn(true);
+        remoteNotificationServiceScheduler.unSchedule();
+        expectLastCall();
         replay();
-        remoteNotificationService.sendRemoteNotifications();
+        remoteNotificationService.sendQueuedRemoteNotifications();
         verify();
     }
 
@@ -114,17 +128,19 @@ public class RemoteNotificationServiceTest {
         expect(releaseDetailNotificationTaskService.hasNext()).andReturn(true).once().andReturn(false);
         expect(releaseDetailNotificationTaskService.poll()).andReturn(releaseDetailNotificationTask);
         expect(secondaryNotificationTarget.notify(releaseDetail)).andReturn(true);
+        expect(releaseDetailNotificationTaskService.queueEmpty()).andReturn(true);
+        remoteNotificationServiceScheduler.unSchedule();
         expectLastCall();
         replay();
-        remoteNotificationService.sendRemoteNotifications();
+        remoteNotificationService.sendQueuedRemoteNotifications();
         verify();
     }
 
     private void replay() {
-        EasyMock.replay(releaseDetailNotificationTaskService, primaryNotificationTarget, secondaryNotificationTarget);
+        EasyMock.replay(releaseDetailNotificationTaskService, remoteNotificationServiceScheduler, primaryNotificationTarget, secondaryNotificationTarget);
     }
 
     private void verify() {
-        EasyMock.verify(releaseDetailNotificationTaskService, primaryNotificationTarget, secondaryNotificationTarget);
+        EasyMock.verify(releaseDetailNotificationTaskService, remoteNotificationServiceScheduler, primaryNotificationTarget, secondaryNotificationTarget);
     }
 }
